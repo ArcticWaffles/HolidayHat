@@ -21,7 +21,7 @@ namespace ChristmasHat
 
         static void Main(string[] args)
         {
-            var results2019 = new Dictionary<Person, Person>()
+            var results2018 = new Dictionary<Person, Person>()
             {
                 {Person.Christie, Person.Andrew },
                 {Person.Andrew, Person.Ron },
@@ -36,7 +36,7 @@ namespace ChristmasHat
             Dictionary<Person, Person> results = null;
 
             while (results == null)
-                results = AssignRecipients(people, results2019);
+                results = AssignRecipients(people, results2018);
 
             foreach (Person person in people)
                 Debug.WriteLine($"{person} is gifting to {results[person]}");
