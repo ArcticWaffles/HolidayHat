@@ -11,7 +11,6 @@ namespace ChristmasHat
     {
         enum Person
         {
-            Andrew,
             Christie,
             Ron,
             Dianne,
@@ -23,23 +22,21 @@ namespace ChristmasHat
 
         static void Main(string[] args)
         {
-            var results2019 = new Dictionary<Person, Person>()
+            var results2020 = new Dictionary<Person, Person>()
             {
-                {Person.Christie, Person.Ron },
-                {Person.Andrew, Person.Christie },
-                {Person.Ron, Person.John },
-                {Person.Dianne, Person.Andrew },
-                {Person.John, Person.Tisa },
-                {Person.Tisa, Person.Dianne },
+                {Person.Christie, Person.Tisa },
+                {Person.Ron, Person.Dianne },
+                {Person.Dianne, Person.Christie },
+                {Person.John, Person.Ron },
+                {Person.Tisa, Person.John },
             };
 
             var people = Enum.GetValues(typeof(Person)).Cast<Person>().ToList();
-            people.Remove(Person.Andrew);
 
             Dictionary<Person, Person> results = null;
 
             while (results == null)
-                results = AssignRecipients(people, results2019);
+                results = AssignRecipients(people, results2020);
 
             foreach (Person person in people)
                 Debug.WriteLine($"{person} is gifting to {results[person]}");
@@ -72,5 +69,3 @@ namespace ChristmasHat
         }
     }
 }
-
-//TODO: fix issue where there are 2 recipients left and it gets stuck because one is the gifter and the other is last year's recipient
