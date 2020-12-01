@@ -19,6 +19,8 @@ namespace ChristmasHat
             Tisa
         }
 
+        static readonly Random random = new Random();
+
         static void Main(string[] args)
         {
             var results2019 = new Dictionary<Person, Person>()
@@ -26,12 +28,13 @@ namespace ChristmasHat
                 {Person.Christie, Person.Ron },
                 {Person.Andrew, Person.Christie },
                 {Person.Ron, Person.John },
-                {Person.Tisa, Person.Dianne },
                 {Person.Dianne, Person.Andrew },
                 {Person.John, Person.Tisa },
+                {Person.Tisa, Person.Dianne },
             };
 
-            var people = Enum.GetValues(typeof(Person)).Cast<Person>();
+            var people = Enum.GetValues(typeof(Person)).Cast<Person>().ToList();
+            people.Remove(Person.Andrew);
 
             Dictionary<Person, Person> results = null;
 
@@ -45,7 +48,6 @@ namespace ChristmasHat
         static Dictionary<Person, Person> AssignRecipients(IEnumerable<Person> people,
                                                            Dictionary<Person, Person> lastYearsResults)
         {
-            var random = new Random();
             var gifters = new List<Person>(people);
             var recipients = new List<Person>(people);
             var results = new Dictionary<Person, Person>();
@@ -55,8 +57,10 @@ namespace ChristmasHat
                 Person recipient;
                 do
                 {
-                    if (recipients.Count == 1 && (recipients[0] == gifter || lastYearsResults[gifter] == recipients[0]))
-                        return null;
+                    var invalidRecipients = new List<Person>() { gifter, lastYearsResults[gifter] };
+                    var validRecipients = recipients.Except(invalidRecipients);
+
+                    if (!validRecipients.Any()) return null;
 
                     recipient = recipients[random.Next(recipients.Count)];
                 }
