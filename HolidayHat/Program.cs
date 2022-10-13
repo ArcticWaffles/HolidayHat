@@ -1,18 +1,18 @@
 ﻿using System.Diagnostics;
 
 var random = new Random();
-var results2022 = new Dictionary<Person, Person>()
-            {
-                {Person.Christie, Person.Tisa },
-                {Person.Ron, Person.Dianne },
-                {Person.Dianne, Person.Ron },
-                {Person.John, Person.Christie },
-                {Person.Tisa, Person.John },
-            };
+var results2022 = new Results()
+{
+    {Person.Christie, Person.Tisa },
+    {Person.Ron, Person.Dianne },
+    {Person.Dianne, Person.Ron },
+    {Person.John, Person.Christie },
+    {Person.Tisa, Person.John },
+};
 
 var people = Enum.GetValues(typeof(Person)).Cast<Person>().ToList();
 
-Dictionary<Person, Person>? results = null;
+Results? results = null;
 
 while (results == null)
     results = AssignRecipients(people, results2022);
@@ -20,12 +20,11 @@ while (results == null)
 foreach (Person person in people)
     Debug.WriteLine($"{person} is gifting to {results[person]}");
 
-Dictionary<Person, Person>? AssignRecipients(IEnumerable<Person> people,
-                                            Dictionary<Person, Person> lastYearsResults)
+Results? AssignRecipients(IEnumerable<Person> people, Results lastYearsResults)
 {
     var gifters = new List<Person>(people);
     var recipients = new List<Person>(people);
-    var results = new Dictionary<Person, Person>();
+    var results = new Results();
 
     foreach (var gifter in gifters)
     {
@@ -48,3 +47,4 @@ Dictionary<Person, Person>? AssignRecipients(IEnumerable<Person> people,
 
 
 enum Person { Christie, Ron, Dianne, John, Tisa }
+class Results : Dictionary<Person, Person> { }
