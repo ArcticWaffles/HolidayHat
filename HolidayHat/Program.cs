@@ -2,25 +2,19 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-var random = new Random();
 var oldResults = ReadResultsFile();
-
-var people = Enum.GetValues(typeof(Person)).Cast<Person>().ToList();
-
 Results? results = null;
-
 while (results == null)
-    results = AssignRecipients(people, oldResults);
-
+    results = AssignRecipients(oldResults);
 WriteResultsFile(results);
-
 ShowResultsMessage();
 
 
-Results? AssignRecipients(IEnumerable<Person> people, Results lastYearsResults)
+Results? AssignRecipients(Results lastYearsResults)
 {
     var gifters = new List<Person>(people);
     var recipients = new List<Person>(people);
+    var random = new Random();
     var results = new Results();
 
     foreach (var gifter in gifters)
@@ -93,4 +87,6 @@ partial class Program
         Converters = { new JsonStringEnumConverter() },
         WriteIndented = true
     };
+    static readonly List<Person> people =
+        Enum.GetValues(typeof(Person)).Cast<Person>().ToList();
 }
