@@ -1,24 +1,21 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var random = new Random();
-var results2022 = new Results()
-{
-    {Person.Christie, Person.Tisa },
-    {Person.Ron, Person.Dianne },
-    {Person.Dianne, Person.Ron },
-    {Person.John, Person.Christie },
-    {Person.Tisa, Person.John },
-};
+var oldResults = ReadResultsFile();
 
 var people = Enum.GetValues(typeof(Person)).Cast<Person>().ToList();
 
 Results? results = null;
 
 while (results == null)
-    results = AssignRecipients(people, results2022);
+    results = AssignRecipients(people, oldResults);
 
-foreach (Person person in people)
-    Debug.WriteLine($"{person} is gifting to {results[person]}");
+WriteResultsFile(results);
+
+ShowResultsMessage();
+
 
 Results? AssignRecipients(IEnumerable<Person> people, Results lastYearsResults)
 {
@@ -45,6 +42,55 @@ Results? AssignRecipients(IEnumerable<Person> people, Results lastYearsResults)
     return results;
 }
 
+static Results ReadResultsFile()
+{
+    var lines = File.ReadAllLines(resultsFile);
+    var json = string.Join(newline, lines);
+    return JsonSerializer.Deserialize<Results>(json, jsonOptions)
+           ?? throw new InvalidOperationException();
+}
+
+static void WriteResultsFile(Results results)
+{
+    var json = JsonSerializer.Serialize(results, jsonOptions);
+    var resultsForFileWrite = json.Split(new string[] { newline },
+                                         StringSplitOptions.RemoveEmptyEntries);
+    File.WriteAllLines(resultsFile, resultsForFileWrite);
+}
+
+void ShowResultsMessage()
+{
+    foreach (Person person in people)
+        WriteLine($"{person} is gifting to {results[person]}");
+
+    var reminder = """
+
+        ╔══════════════════════════════════════════════╗
+        ║ ► Remember to push changes to results.json   ║
+        ╚══════════════════════════════════════════════╝
+
+        """;
+    WriteLine(reminder);
+
+    static void WriteLine(string message)
+    {
+        Console.WriteLine(message);
+        Debug.WriteLine(message);
+    }
+}
+
 
 enum Person { Christie, Ron, Dianne, John, Tisa }
+
 class Results : Dictionary<Person, Person> { }
+
+partial class Program
+{
+    static readonly string newline = Environment.NewLine;
+    static readonly string resultsFile = @"..\..\..\results.json";
+    static readonly JsonSerializerOptions jsonOptions = new()
+    {
+        Converters = { new JsonStringEnumConverter() },
+        WriteIndented = true
+    };
+}
