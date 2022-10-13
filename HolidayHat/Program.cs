@@ -3,14 +3,20 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var oldResults = ReadResultsFile();
-Results? results = null;
-while (results == null)
-    results = AssignRecipients(oldResults);
-WriteResultsFile(results);
+var newResults = AssignNewRecipients(oldResults);
+WriteResultsFile(newResults);
 ShowResultsMessage();
 
 
-Results? AssignRecipients(Results lastYearsResults)
+static Results AssignNewRecipients(Results oldResults)
+{
+    Results? results = null;
+    while (results == null)
+        results = TryAssignNewRecipients(oldResults);
+    return results;
+}
+
+static Results? TryAssignNewRecipients(Results oldResults)
 {
     var gifters = new List<Person>(people);
     var recipients = new List<Person>(people);
@@ -19,20 +25,25 @@ Results? AssignRecipients(Results lastYearsResults)
 
     foreach (var gifter in gifters)
     {
+        var invalidRecipients =
+            new List<Person>() { gifter, oldResults[gifter] };
+        var validRecipients = recipients.Except(invalidRecipients);
+
+        if (!validRecipients.Any())
+            return null;
+
         Person recipient;
         do
         {
-            var invalidRecipients = new List<Person>() { gifter, lastYearsResults[gifter] };
-            var validRecipients = recipients.Except(invalidRecipients);
-
-            if (!validRecipients.Any()) return null;
-
-            recipient = recipients[random.Next(recipients.Count)];
+            var randomIndex = random.Next(recipients.Count);
+            recipient = recipients[randomIndex];
         }
-        while (recipient == gifter || lastYearsResults[gifter] == recipient);
+        while (invalidRecipients.Contains(recipient));
+
         recipients.Remove(recipient);
         results.Add(gifter, recipient);
     }
+
     return results;
 }
 
@@ -55,7 +66,7 @@ static void WriteResultsFile(Results results)
 void ShowResultsMessage()
 {
     foreach (Person person in people)
-        WriteLine($"{person} is gifting to {results[person]}");
+        WriteLine($"{person} is gifting to {newResults[person]}");
 
     var reminder = """
 
