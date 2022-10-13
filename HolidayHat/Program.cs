@@ -1,28 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
-namespace HolidayHat
-{
-    class Program
-    {
-        enum Person
-        {
-            Christie,
-            Ron,
-            Dianne,
-            John,
-            Tisa
-        }
-
-        static readonly Random random = new Random();
-
-        static void Main(string[] args)
-        {
-            var results2022 = new Dictionary<Person, Person>()
+var random = new Random();
+var results2022 = new Dictionary<Person, Person>()
             {
                 {Person.Christie, Person.Tisa },
                 {Person.Ron, Person.Dianne },
@@ -31,41 +10,41 @@ namespace HolidayHat
                 {Person.Tisa, Person.John },
             };
 
-            var people = Enum.GetValues(typeof(Person)).Cast<Person>().ToList();
+var people = Enum.GetValues(typeof(Person)).Cast<Person>().ToList();
 
-            Dictionary<Person, Person> results = null;
+Dictionary<Person, Person>? results = null;
 
-            while (results == null)
-                results = AssignRecipients(people, results2022);
+while (results == null)
+    results = AssignRecipients(people, results2022);
 
-            foreach (Person person in people)
-                Debug.WriteLine($"{person} is gifting to {results[person]}");
-        }
+foreach (Person person in people)
+    Debug.WriteLine($"{person} is gifting to {results[person]}");
 
-        static Dictionary<Person, Person> AssignRecipients(IEnumerable<Person> people,
-                                                           Dictionary<Person, Person> lastYearsResults)
+Dictionary<Person, Person>? AssignRecipients(IEnumerable<Person> people,
+                                            Dictionary<Person, Person> lastYearsResults)
+{
+    var gifters = new List<Person>(people);
+    var recipients = new List<Person>(people);
+    var results = new Dictionary<Person, Person>();
+
+    foreach (var gifter in gifters)
+    {
+        Person recipient;
+        do
         {
-            var gifters = new List<Person>(people);
-            var recipients = new List<Person>(people);
-            var results = new Dictionary<Person, Person>();
+            var invalidRecipients = new List<Person>() { gifter, lastYearsResults[gifter] };
+            var validRecipients = recipients.Except(invalidRecipients);
 
-            foreach (var gifter in gifters)
-            {
-                Person recipient;
-                do
-                {
-                    var invalidRecipients = new List<Person>() { gifter, lastYearsResults[gifter] };
-                    var validRecipients = recipients.Except(invalidRecipients);
+            if (!validRecipients.Any()) return null;
 
-                    if (!validRecipients.Any()) return null;
-
-                    recipient = recipients[random.Next(recipients.Count)];
-                }
-                while (recipient == gifter || lastYearsResults[gifter] == recipient);
-                recipients.Remove(recipient);
-                results.Add(gifter, recipient);
-            }
-            return results;
+            recipient = recipients[random.Next(recipients.Count)];
         }
+        while (recipient == gifter || lastYearsResults[gifter] == recipient);
+        recipients.Remove(recipient);
+        results.Add(gifter, recipient);
     }
+    return results;
 }
+
+
+enum Person { Christie, Ron, Dianne, John, Tisa }
