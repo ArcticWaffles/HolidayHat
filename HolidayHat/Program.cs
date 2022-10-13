@@ -22,13 +22,13 @@ namespace HolidayHat
 
         static void Main(string[] args)
         {
-            var results2021 = new Dictionary<Person, Person>()
+            var results2022 = new Dictionary<Person, Person>()
             {
-                {Person.Christie, Person.Ron },
-                {Person.Ron, Person.Tisa },
-                {Person.Dianne, Person.John },
-                {Person.John, Person.Dianne },
-                {Person.Tisa, Person.Christie },
+                {Person.Christie, Person.Tisa },
+                {Person.Ron, Person.Dianne },
+                {Person.Dianne, Person.Ron },
+                {Person.John, Person.Christie },
+                {Person.Tisa, Person.John },
             };
 
             var people = Enum.GetValues(typeof(Person)).Cast<Person>().ToList();
@@ -36,7 +36,7 @@ namespace HolidayHat
             Dictionary<Person, Person> results = null;
 
             while (results == null)
-                results = AssignRecipients(people, results2021);
+                results = AssignRecipients(people, results2022);
 
             foreach (Person person in people)
                 Debug.WriteLine($"{person} is gifting to {results[person]}");
