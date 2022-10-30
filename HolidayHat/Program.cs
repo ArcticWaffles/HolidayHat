@@ -1,71 +1,96 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
-namespace HolidayHat
+var oldResults = ReadResultsFile();
+var newResults = AssignNewRecipients(oldResults);
+WriteResultsFile(newResults);
+ShowResultsMessage();
+
+
+static Results AssignNewRecipients(Results oldResults)
 {
-    class Program
+    Results? results = null;
+    while (results == null)
+        results = TryAssignNewRecipients(oldResults);
+    return results;
+}
+
+static Results? TryAssignNewRecipients(Results oldResults)
+{
+    var gifters = new List<Person>(people);
+    var recipients = new List<Person>(people);
+    var random = new Random();
+    var results = new Results();
+
+    foreach (var gifter in gifters)
     {
-        enum Person
-        {
-            Christie,
-            Ron,
-            Dianne,
-            John,
-            Tisa
-        }
+        var invalidRecipients = new[] { gifter, oldResults[gifter] };
+        var validRecipients = recipients.Except(invalidRecipients).ToList();
 
-        static readonly Random random = new Random();
+        if (!validRecipients.Any()) return null;
 
-        static void Main(string[] args)
-        {
-            var results2022 = new Dictionary<Person, Person>()
-            {
-                {Person.Christie, Person.Tisa },
-                {Person.Ron, Person.Dianne },
-                {Person.Dianne, Person.Ron },
-                {Person.John, Person.Christie },
-                {Person.Tisa, Person.John },
-            };
+        var randomIndex = random.Next(validRecipients.Count);
+        var recipient = validRecipients[randomIndex];
 
-            var people = Enum.GetValues(typeof(Person)).Cast<Person>().ToList();
-
-            Dictionary<Person, Person> results = null;
-
-            while (results == null)
-                results = AssignRecipients(people, results2022);
-
-            foreach (Person person in people)
-                Debug.WriteLine($"{person} is gifting to {results[person]}");
-        }
-
-        static Dictionary<Person, Person> AssignRecipients(IEnumerable<Person> people,
-                                                           Dictionary<Person, Person> lastYearsResults)
-        {
-            var gifters = new List<Person>(people);
-            var recipients = new List<Person>(people);
-            var results = new Dictionary<Person, Person>();
-
-            foreach (var gifter in gifters)
-            {
-                Person recipient;
-                do
-                {
-                    var invalidRecipients = new List<Person>() { gifter, lastYearsResults[gifter] };
-                    var validRecipients = recipients.Except(invalidRecipients);
-
-                    if (!validRecipients.Any()) return null;
-
-                    recipient = recipients[random.Next(recipients.Count)];
-                }
-                while (recipient == gifter || lastYearsResults[gifter] == recipient);
-                recipients.Remove(recipient);
-                results.Add(gifter, recipient);
-            }
-            return results;
-        }
+        recipients.Remove(recipient);
+        results.Add(gifter, recipient);
     }
+
+    return results;
+}
+
+static Results ReadResultsFile()
+{
+    var lines = File.ReadAllLines(resultsFile);
+    var json = string.Join(newline, lines);
+    return JsonSerializer.Deserialize<Results>(json, jsonOptions)
+           ?? throw new InvalidOperationException();
+}
+
+static void WriteResultsFile(Results results)
+{
+    var json = JsonSerializer.Serialize(results, jsonOptions);
+    var resultsForFileWrite = json.Split(new string[] { newline },
+                                         StringSplitOptions.RemoveEmptyEntries);
+    File.WriteAllLines(resultsFile, resultsForFileWrite);
+}
+
+void ShowResultsMessage()
+{
+    foreach (Person person in people)
+        WriteLine($"{person} is gifting to {newResults[person]}");
+
+    var reminder = """
+
+        ╔══════════════════════════════════════════════╗
+        ║ ► Remember to push changes to results.json   ║
+        ╚══════════════════════════════════════════════╝
+
+        """;
+    WriteLine(reminder);
+
+    static void WriteLine(string message)
+    {
+        Console.WriteLine(message);
+        Debug.WriteLine(message);
+    }
+}
+
+
+enum Person { Christie, Ron, Dianne, John, Tisa }
+
+class Results : Dictionary<Person, Person> { }
+
+partial class Program
+{
+    static readonly string newline = Environment.NewLine;
+    static readonly string resultsFile = @"..\..\..\results.json";
+    static readonly JsonSerializerOptions jsonOptions = new()
+    {
+        Converters = { new JsonStringEnumConverter() },
+        WriteIndented = true
+    };
+    static readonly List<Person> people =
+        Enum.GetValues(typeof(Person)).Cast<Person>().ToList();
 }
