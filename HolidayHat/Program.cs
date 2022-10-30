@@ -25,20 +25,13 @@ static Results? TryAssignNewRecipients(Results oldResults)
 
     foreach (var gifter in gifters)
     {
-        var invalidRecipients =
-            new List<Person>() { gifter, oldResults[gifter] };
-        var validRecipients = recipients.Except(invalidRecipients);
+        var invalidRecipients = new[] { gifter, oldResults[gifter] };
+        var validRecipients = recipients.Except(invalidRecipients).ToList();
 
-        if (!validRecipients.Any())
-            return null;
+        if (!validRecipients.Any()) return null;
 
-        Person recipient;
-        do
-        {
-            var randomIndex = random.Next(recipients.Count);
-            recipient = recipients[randomIndex];
-        }
-        while (invalidRecipients.Contains(recipient));
+        var randomIndex = random.Next(validRecipients.Count);
+        var recipient = validRecipients[randomIndex];
 
         recipients.Remove(recipient);
         results.Add(gifter, recipient);
